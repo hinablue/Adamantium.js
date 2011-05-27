@@ -1,2 +1,4 @@
 build/iphone/*
 build/android/*
+*.svn
+*.DS_Store
