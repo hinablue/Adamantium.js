@@ -81,6 +81,31 @@ $.create = function (type, opts) {
     		element._postConstructorHook = opts.hook;
     		opts.hook(element);
     	}
+    	for (var i = 0, l = $.maps.naturalEvents.length; i < l; i++) {
+    		var event = $.maps.naturalEvents[i];
+    		//Ti.API.info(Titanium.Platform.availableMemory + ': ' + element.id + ' autolistens to ' + event);
+    		element.addEventListener(event, function (e) {
+    			//Ti.API.info(Titanium.Platform.availableMemory + ': ' + e.source.id + ' autotriggered ' + e.type);
+    			var eid = e.source.id;
+		    	for (var attribute in e) {
+		    		if (e.hasOwnProperty(attribute)) {
+		    			if (typeof e[attribute] !== 'object') {
+			    			eid = eid + '///' + e[attribute];		    			
+		    			}
+		    		}
+		    	}
+    			//Ti.API.info(Titanium.Platform.availableMemory + ': ' + e.source.id + ' ' + e.type + ' ' + Ti.Utils.md5HexDigest(eid));
+				if ($.eid !== eid) {
+					e.target = '#' + e.source.id;
+					$.eid = eid;
+					//Ti.API.info(Titanium.Platform.availableMemory + ': ' + e.source.id + ' ' + e.type + ' ' + Ti.Utils.md5HexDigest(eid));
+					$(e.source).trigger(e.type, e);
+				}
+    		});
+
+
+
+    	}
     	return element;
     }
 };
@@ -418,6 +443,7 @@ $.extend('bind', function (component, event, callback) {
 			}
 			$.maps.eventsByType[$.selector][name].push(first);
 		}
+		/*
 		component.addEventListener(event, function (e) {
 			var eid = e.source.id;
 			if (typeof e.orientation !== 'undefined') { eid = eid + '#' + e.orientation; }
@@ -471,6 +497,7 @@ $.extend('bind', function (component, event, callback) {
 				}
 			}
 		});
+		*/
 	}
     return component;
 });
@@ -481,13 +508,13 @@ $.extend('trigger', function (component, event, e) {
 		@param [required] event (string)
 		@param [optional] opts (object)
 	*/
-	//Ti.API.info(component.id + ' ' + event + ' ' + component.master);
+	Ti.API.info(component.id + ' ' + event + ' ' + component.master);
 	if (component && event) {
 		e = e || {};
 		e.type = e.type || event;
-		e.source = component;
+		e.source = e.source || component;
 		e.selector = $.selector || null;
-		e.target = '#' + component.id;
+		e.target = component;
 		if ($.maps.eventsByID[component.id]) {
 			if ($.maps.eventsByID[component.id][event]) {
 				for (var i = 0, l = $.maps.eventsByID[component.id][event].length; i < l; i++) {
@@ -501,6 +528,9 @@ $.extend('trigger', function (component, event, e) {
 					}
 				}
 				*/
+		}
+		if (component.master) {
+			$('#' + component.master).trigger(event, e);
 		}
 	}
     return component;

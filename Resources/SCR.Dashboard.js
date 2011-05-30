@@ -17,8 +17,8 @@ SCR.Dashboard = $('Screen')
 		hook: function (o) {
 			$(':IdeaSummaryRow')
 				.bind('delete', function (e) {
-					if (e.source.id) {
-						var id = e.source.id.split('.')[1];
+					if (e.target.id) {
+						var id = e.target.id.split('.')[1];
 						$(LOGIC.Ideas).trigger('remove', { 
 							id: id,
 							context: 'SCR.Dashboard'
@@ -29,9 +29,9 @@ SCR.Dashboard = $('Screen')
 					$('#Dashboard.Ideas').attr('selectedRow', e.index);
 					$(SCR.Idea)
 						.stage({
-							idea: e.source.idea,
-							uid: e.source.uid,
-							rating: e.source.rating
+							idea: e.target.idea,
+							uid: e.target.uid,
+							rating: e.target.rating
 						})
 						.run()
 					;
@@ -44,7 +44,17 @@ SCR.Dashboard = $('Screen')
 		systemButton: Ti.UI.iPhone.SystemButton.ADD,
 		hook: function (o) {
 			$(o).click(function (e) {
-				var t = $(o).parent();
+				$(SCR.EditTextArea)
+					.stage({
+						title: 'Add new idea',
+						context: 'idea',
+						hook: function (e) {
+							$(LOGIC.Ideas).insert({ idea: e.value });
+							
+						}
+					})
+					.run()
+				;
 			});
 		}
 	})
@@ -88,6 +98,9 @@ SCR.Dashboard = $('Screen')
 			}
 			$(SCR.Dashboard).attr('title', length + ' ' + context);
 		}
+	})
+	.click(function (e) {
+		Ti.API.info(e.source + ' ' + e.target + ' ' + e.type);
 	})
 	.focus(function (e) {
 		$('#Dashboard.Ideas').unselect();
