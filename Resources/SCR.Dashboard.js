@@ -44,17 +44,7 @@ SCR.Dashboard = $('Screen')
 		systemButton: Ti.UI.iPhone.SystemButton.ADD,
 		hook: function (o) {
 			$(o).click(function (e) {
-				$(SCR.EditTextArea)
-					.stage({
-						title: 'Add new idea',
-						context: 'idea',
-						hook: function (e) {
-							$(LOGIC.Ideas).insert({ idea: e.value });
-							
-						}
-					})
-					.run()
-				;
+				var t = $(o).parent();
 			});
 		}
 	})

@@ -59,29 +59,31 @@ $.maps = {
 	]
 };
 
-	/*
-		Create element
-		@param [required] type (string) "UI.TableView"
-		@param [optional] opts (object)
-	*/
-	$.create = function (type, opts) {
-		if (typeof type !== 'undefined') {
-			opts = opts || {};
-			type = type.split('.');
-			var element = Ti[type[0]]['create' + type[1]](opts);
-			element.type = opts.type || type[1];
-			// TODO: add parent object or reference, for propagation of events
-			$.framework.track(element);
-			element.addEventListener('attribute_id', function (e) {
-				$.framework.track(e.source, { dontTrackType: true });
-			});
-			if (typeof opts.hook == 'function') {
-				element._postConstructorHook = opts.hook;
-				opts.hook(element);
-			}
-			return element;
-		}
-	};
+/*
+    Create element
+    @param [required] type (string) "UI.TableView"
+    @param [optional] opts (object)
+*/
+$.create = function (type, opts) {
+    if (typeof type !== 'undefined') {
+    	opts = opts || {};
+    	type = type.split('.');
+    	var element = Ti[type[0]]['create' + type[1]](opts);
+    	element.type = opts.type || type[1];
+    	if (opts.master) {
+    		element.master = opts.master;
+    	}
+    	$.framework.track(element);
+    	element.addEventListener('attribute_id', function (e) {
+    		$.framework.track(e.source, { dontTrackType: true });
+    	});
+    	if (typeof opts.hook == 'function') {
+    		element._postConstructorHook = opts.hook;
+    		opts.hook(element);
+    	}
+    	return element;
+    }
+};
 
 
 $.framework = $.prototype = function (context) {
@@ -142,7 +144,7 @@ $.framework = $.prototype = function (context) {
 				this.context = $.maps.byType[this.context.split(':')[1]];
 			}
 		} else if (this.context.indexOf('.') > 0) {
-			this.context = [this[0] = $.create(this.context)];
+			this.context = [this[0] = $.create(this.context, { id: $.id() })];
 		} else {
 			switch(this.context) {
 				case 'Screen':
@@ -368,6 +370,7 @@ $.extend('append', function (component, type, opts) {
 	*/
 	if (component && type) {
 		opts = opts || {};
+		opts.master = component.id;
 		$.create(type, opts);
 	}
     return component;
@@ -381,6 +384,7 @@ $.extend('add', function (component, type, opts) {
 	*/
 	if (component && type) {
 		opts = opts || {};
+		opts.master = component.id;
 		var element = $.create(type, opts);
 		if (typeof(element.context) == 'undefined') {
 			component.add(element);
@@ -477,6 +481,7 @@ $.extend('trigger', function (component, event, e) {
 		@param [required] event (string)
 		@param [optional] opts (object)
 	*/
+	//Ti.API.info(component.id + ' ' + event + ' ' + component.master);
 	if (component && event) {
 		e = e || {};
 		e.type = e.type || event;
@@ -567,13 +572,17 @@ $.extend('appendTo', function (component, element) {
 		var id = element.split('#')[1];
 		if ($.maps.byID[id]) {
 			$.maps.byID[id].add(component);
+			component.master = $.maps.byID[id].id;
 		}
 	} else if (element && element.context && typeof element.context[0] == 'object') {
 		element.context[0].add(component);
+		component.master = element.context[0].id;
 	}  else if (element && typeof element.context == 'object') {
 		element.context.add(component);
+		component.master = element.context.id;
 	} else if (typeof element == 'object') {
 		element.add(component);
+		component.master = element.id;
 	}
     return component;
 });
@@ -593,6 +602,7 @@ $.extend('tab', function (component, opts) {
 			opts.window = opts.screen;
 		}
 		opts.title = opts.title || opts.window.title;
+		opts.master = component.id;
 		var tab = $.create('UI.Tab', opts);
 		component.addTab(tab);
 	}
@@ -677,6 +687,7 @@ $.extend('rows', function (component, data, process, type) {
 		rows[0] = Ti.UI.createTableViewSection();
 		for (var i2 = 0, l2 = data.length; i2 < l2; i2++) {
 			args = process(data[i2]);
+			args.master = component.id;
 			if (component.selectedRowBackgroundColor) {
 				args.selectedBackgroundColor = component.selectedRowBackgroundColor;
 			}
