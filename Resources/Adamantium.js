@@ -33,7 +33,7 @@
 //	TODO:	Add filter prototype method, that appends and manipulates $.selector
 
 function $(context) {
-	return new $.core(context);
+	return new $.framework(context);
 };
 
 var global = ( function () { return this; }).call();
@@ -59,7 +59,32 @@ $.maps = {
 	]
 };
 
-$.core = $.prototype = function (context) {
+	/*
+		Create element
+		@param [required] type (string) "UI.TableView"
+		@param [optional] opts (object)
+	*/
+	$.create = function (type, opts) {
+		if (typeof type !== 'undefined') {
+			opts = opts || {};
+			type = type.split('.');
+			var element = Ti[type[0]]['create' + type[1]](opts);
+			element.type = opts.type || type[1];
+			// TODO: add parent object or reference, for propagation of events
+			$.framework.track(element);
+			element.addEventListener('attribute_id', function (e) {
+				$.framework.track(e.source, { dontTrackType: true });
+			});
+			if (typeof opts.hook == 'function') {
+				element._postConstructorHook = opts.hook;
+				opts.hook(element);
+			}
+			return element;
+		}
+	};
+
+
+$.framework = $.prototype = function (context) {
 
 	// Make the context accessible
 	this.context = context;
@@ -75,7 +100,7 @@ $.core = $.prototype = function (context) {
 		@param [optional] options (object)
 	*/
 	
-	$.core.track = function (element, options) {
+	$.framework.track = function (element, options) {
 		if (element && !element.tracker) {
 			element.tracker = '#' + $.id() + '.';
 			options = options || {};
@@ -101,29 +126,6 @@ $.core = $.prototype = function (context) {
 		}
 	};
 	
-	/*
-		Create element
-		@param [required] type (string) "UI.TableView"
-		@param [optional] opts (object)
-	*/
-	$.core.createElement = function (type, opts) {
-		if (typeof type !== 'undefined') {
-			opts = opts || {};
-			type = type.split('.');
-			var element = Ti[type[0]]['create' + type[1]](opts);
-			element.type = opts.type || type[1];
-			// TODO: add parent object or reference, for propagation of events
-			$.core.track(element);
-			element.addEventListener('attribute_id', function (e) {
-				$.core.track(e.source, { dontTrackType: true });
-			});
-			if (typeof opts.hook == 'function') {
-				element._postConstructorHook = opts.hook;
-				opts.hook(element);
-			}
-			return element;
-		}
-	};
 	
 	/*
 		Process the context
@@ -140,7 +142,7 @@ $.core = $.prototype = function (context) {
 				this.context = $.maps.byType[this.context.split(':')[1]];
 			}
 		} else if (this.context.indexOf('.') > 0) {
-			this.context = [this[0] = $.core.createElement(this.context)];
+			this.context = [this[0] = $.create(this.context)];
 		} else {
 			switch(this.context) {
 				case 'Screen':
@@ -154,7 +156,7 @@ $.core = $.prototype = function (context) {
 					break;
 			}
 			$.selector = '#' + this.context[0].id;
-			$.core.track(this.context[0]);
+			$.framework.track(this.context[0]);
 		}
 	} else if (typeof this.context === 'object') {
 		if (typeof this.context.context !== 'undefined' && typeof this.context.context[0] !== 'undefined') {
@@ -184,7 +186,7 @@ $.prototype = $;
 */
 $.prototype.extend = function(name, extension) {
 	if (name && extension) {
-		$.prototype[name] = $.core.prototype[name] = function(first, second, third, fourth, fifth) {
+		$.prototype[name] = $.framework.prototype[name] = function(first, second, third, fourth, fifth) {
 			if (typeof this.context == 'object') {
 				var component,
 					context, 
@@ -366,7 +368,7 @@ $.extend('append', function (component, type, opts) {
 	*/
 	if (component && type) {
 		opts = opts || {};
-		$.core.createElement(type, opts);
+		$.create(type, opts);
 	}
     return component;
 });
@@ -379,7 +381,7 @@ $.extend('add', function (component, type, opts) {
 	*/
 	if (component && type) {
 		opts = opts || {};
-		var element = $.core.createElement(type, opts);
+		var element = $.create(type, opts);
 		if (typeof(element.context) == 'undefined') {
 			component.add(element);
 		} else {
@@ -591,7 +593,7 @@ $.extend('tab', function (component, opts) {
 			opts.window = opts.screen;
 		}
 		opts.title = opts.title || opts.window.title;
-		var tab = $.core.createElement('UI.Tab', opts);
+		var tab = $.create('UI.Tab', opts);
 		component.addTab(tab);
 	}
     return component;
@@ -686,7 +688,7 @@ $.extend('rows', function (component, data, process, type) {
 	    			}
 	    		}
 			} else {
-				row = $.core.createElement(type, args);
+				row = $.create(type, args);
 			}
 			rows[0].add(row);
 		}

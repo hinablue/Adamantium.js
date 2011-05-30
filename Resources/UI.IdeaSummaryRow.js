@@ -11,7 +11,7 @@ $.push('UI.IdeaSummaryRow', function (args) {
 	args.id = args.id || $.id();
 	args.height = 'auto';
 	args.type = 'IdeaSummaryRow';
-	var element = $.core.createElement('UI.TableViewRow', args);
+	var element = $.create('UI.TableViewRow', args);
 	$(element)
 		.attr('rating', function (e) {
 			$('#' + e.source.id + '.Rating').update({ rating: e.value });
