@@ -53,7 +53,10 @@ $.maps = {
 	byType: {},
 	eventsByID: {},
 	eventsByType: {},
-	shorthandMethods: []
+	shorthandMethods: [],
+	naturalEvents: [
+		'beforeload', 'blur', 'change', 'click', 'close', 'complete', 'delete', 'dblclick', 'doubletap', 'error', 'focus', 'load', 'move', 'open', 'proximity', 'return', 'selected', 'singletap', 'scale', 'scroll', 'scrollEnd', 'start', 'swipe', 'touchcancel', 'touchend', 'touchmove', 'touchstart', 'twofingertap', 'update'
+	]
 };
 
 $.core = $.prototype = function (context) {
@@ -317,13 +320,13 @@ $.prototype.require = function (file) {
 		path = file.split('.');
 		Ti.include(file + '.js');
 		base = global[path[0]];
-		base[path[1]].trigger('install').trigger('load').trigger('observers');	
+		base[path[1]].trigger('ready');
 	} else if (file && typeof file == 'object') {
 		for (var i = 0, l = file.length; i < l; i++) {
 			path = file[i].split('.');
 			Ti.include(file[i] + '.js');
 			base = global[path[0]];
-			base[path[1]].trigger('install').trigger('load').trigger('observers');
+			base[path[1]].trigger('ready');
 		}	
 	}
 };
@@ -775,6 +778,7 @@ $.shorthand('load');
 $.shorthand('move');
 $.shorthand('observers');
 $.shorthand('open');
+$.shorthand('ready');
 $.shorthand('refresh');
 $.shorthand('run');
 $.shorthand('scroll');

@@ -59,7 +59,7 @@ SCR.Dashboard = $('Screen')
 		}
 	})
 	.attr('rightNavButton', '#Dashboard.NewIdea')
-	.load(function () {
+	.ready(function () {
 		$(LOGIC.Ideas)
 			.index(function (e) {
 				$(SCR.Dashboard).stage({

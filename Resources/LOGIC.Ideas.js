@@ -51,7 +51,7 @@ LOGIC.Ideas = $('Logic')
 			});
 		}
 	})
-	.load(function () {
+	.ready(function () {
 		$.execute(
 			'CREATE TABLE IF NOT EXISTS Ideas (' +
 			'id TEXT PRIMARY KEY, ' +

@@ -85,7 +85,7 @@ SCR.Manifesto = $('Screen')
 		showHorizontalScrollIndicator: false,
 		layout: 'vertical'
  	})
- 	.load(function() {
+ 	.ready(function() {
  		$('#Manifesto.Headline').appendTo('#Manifesto.Wrapper');
  		$('#Manifesto.ParagraphOne').appendTo('#Manifesto.Wrapper');
  		$('#Manifesto.SubheadlineOne').appendTo('#Manifesto.Wrapper');
